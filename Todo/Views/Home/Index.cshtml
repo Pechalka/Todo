@@ -1,0 +1,122 @@
+﻿@{
+    Layout = null;
+}
+@using Newtonsoft.Json
+@model List<Task>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <title>Index</title>
+    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/bootstrap-responsive.min.css")" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="@Url.Content("~/Scripts/jquery-1.7.2.min.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/knockout.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/knockout.mapping-latest.js")"></script>
+
+    <script type="text/javascript" src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+    <script type="text/javascript">
+        var ENTER_KEY = 13;
+        ko.bindingHandlers.enterKey = {
+            init: function (element, valueAccessor, allBindingsAccessor, data) {
+                var wrappedHandler, newValueAccessor;
+
+                wrappedHandler = function (data, event) {
+                    if (event.keyCode === ENTER_KEY) {
+                        valueAccessor().call(this, data, event);
+                    }
+                };
+
+                newValueAccessor = function () {
+                    return {
+                        keyup: wrappedHandler
+                    };
+                };
+
+                ko.bindingHandlers.event.init(element, newValueAccessor, allBindingsAccessor, data);
+            }
+        };
+        
+        var ViewModel = function (todos, url) {
+            var self = this;
+            self.todos =ko.mapping.fromJS(todos);
+
+            self.newItemTitle = ko.observable('');
+
+
+            self.add = function () {
+                var title = self.newItemTitle().trim();
+                if (title) {
+                    self.todos.push(new Todo(title));
+                    self.newItemTitle('');
+                }
+            };
+
+            self.remove = function(item) {
+                self.todos.remove(item);
+            };
+
+            ko.computed(function() {
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: ko.toJSON(this.todos),
+                    context: this,
+                    contentType: 'application/json'
+                });
+
+            }, self);
+        };
+
+        var Todo = function (title) {
+            this.title = ko.observable(title);
+        };
+
+        $(function () {
+            var viewModel = new ViewModel(@Html.Raw(JsonConvert.SerializeObject(Model)), '@Url.Action("Update")');
+            ko.applyBindings(viewModel);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="span12">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>действие</th>
+                            <th>Пнд.</th>
+                            <th>Втр.</th>
+                            <th>Сре.</th>
+                            <th>Чет.</th>
+                            <th>Пят.</th>
+                            <th>Суб.</th>
+                            <th>Вск.</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach : todos">
+                        <tr>
+                            <td ><a class="btn btn-mini" data-bind="click : $root.remove">удалить</a></td>  
+                            <td data-bind="text : title"></td>                            
+                            <td><input type="checkbox"/></td>
+                            <td><input type="checkbox"/></td>
+                            <td><input type="checkbox"/></td>
+                            <td><input type="checkbox"/></td>
+                            <td><input type="checkbox"/></td>
+                            <td><input type="checkbox"/></td>
+                            <td><input type="checkbox"/></td>                          
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="input-append">
+                    <input class="span2" id="appendedInputButton" size="16" type="text" data-bind="value : newItemTitle, enterKey : add">
+                    <button class="btn" type="button" data-bind="click : add">Add</button>
+                </div>
+                <div data-bind="html : ko.toJSON($data)"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

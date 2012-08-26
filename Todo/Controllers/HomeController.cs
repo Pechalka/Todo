@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
+using System.Web.Script.Serialization;
 using MongoDB.Driver;
 
 namespace Todo.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly TaskDataService _taskDataService;
+        private readonly ITaskDataService _taskDataService;
 
         public HomeController()
         {
-            _taskDataService = new TaskDataService();
+            _taskDataService = new FileTaskDataService();
         }
 
         public ActionResult Index()
@@ -29,12 +32,44 @@ namespace Todo.Controllers
     }
 }
 
+public interface ITaskDataService
+{
+    List<Task> GetCurrentTasks();
+    void Update(List<Task> tasks);
+}
 
-public class TaskDataService
+class FileTaskDataService : ITaskDataService
+{
+    public string path {
+        get { return HttpContext.Current.Server.MapPath("~/data.json"); }
+    }
+
+    public List<Task> GetCurrentTasks()
+    {
+        var data = File.ReadAllText(path);
+        var serializer = new JavaScriptSerializer();
+        var r = (List<Task>) serializer.Deserialize(data, typeof (List<Task>));
+        return r ?? new List<Task>();
+    }
+
+    public void Update(List<Task> tasks)
+    {
+        if (tasks == null)
+            return; 
+
+        var serializer = new JavaScriptSerializer();
+        var data = serializer.Serialize(tasks);
+
+        File.WriteAllText(path, data);
+    }
+}
+
+
+public class MongoDbTaskDataService : ITaskDataService
 {
     private readonly MongoCollection<Task> _tasks;
 
-    public TaskDataService()
+    public MongoDbTaskDataService()
     {
         var server = MongoServer.Create("mongodb://localhost:27020/");
         var database = server.GetDatabase("todos");
@@ -43,14 +78,6 @@ public class TaskDataService
 
     public List<Task> GetCurrentTasks()
     {
-        //return new List<Task>
-        //           {
-        //               new Task{ title = "test"},
-        //               new Task{ title = "test1"},
-        //               new Task{ title = "test2"},
-        //               new Task{ title = "test3"}
-        //           };
-
         return _tasks.FindAll().ToList();
     }
 

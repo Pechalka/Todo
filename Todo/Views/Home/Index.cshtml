@@ -45,10 +45,11 @@
 
 
             self.add = function () {
+                
                 var title = self.newItemTitle().trim();
                 if (title) {
-                    self.todos.push(new Todo(title));
                     self.newItemTitle('');
+                    self.todos.push(new Todo(title));
                 }
             };
 
@@ -100,13 +101,13 @@
                         <tr>
                             <td ><a class="btn btn-mini" data-bind="click : $root.remove">удалить</a></td>  
                             <td data-bind="text : title"></td>                            
-                            <td><input type="checkbox"/></td>
-                            <td><input type="checkbox"/></td>
-                            <td><input type="checkbox"/></td>
-                            <td><input type="checkbox"/></td>
-                            <td><input type="checkbox"/></td>
-                            <td><input type="checkbox"/></td>
-                            <td><input type="checkbox"/></td>                          
+                            <td><input type="checkbox" data-bind="checked : Day1"/></td>
+                            <td><input type="checkbox" data-bind="checked : Day2"/></td>
+                            <td><input type="checkbox" data-bind="checked : Day3"/></td>
+                            <td><input type="checkbox" data-bind="checked : Day4"/></td>
+                            <td><input type="checkbox" data-bind="checked : Day5"/></td>
+                            <td><input type="checkbox" data-bind="checked : Day6"/></td>
+                            <td><input type="checkbox" data-bind="checked : Day7"/></td>                          
                         </tr>
                     </tbody>
                 </table>
